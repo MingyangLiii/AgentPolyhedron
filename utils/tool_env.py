@@ -80,6 +80,8 @@ class ToolEnv:
             self.tools.append(tool)
         elif isinstance(tool, List):
             self.tools.extend(tool)
+        else:
+            raise ValueError("Tool should be of type Tool or List[Tool]")
 
 
     def delete_tool(self, name:str) -> None:

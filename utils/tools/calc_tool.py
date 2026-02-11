@@ -24,12 +24,12 @@ tool_multiply = Tool(
             Property(
                 name="a",
                 type="string",
-                description="First number"
+                description="First number (should not be an expression, but a single number)"
             ),
             Property(
                 name="b",
                 type="string",
-                description="Second number"
+                description="Second number (should not be an expression, but a single number)"
             )
         ],
         required=["a", "b"]
@@ -46,12 +46,12 @@ tool_divide = Tool(
             Property(
                 name="a",
                 type="string",
-                description="First number"
+                description="First number (should not be an expression, but a single number)"
             ),
             Property(
                 name="b",
                 type="string",
-                description="Second number"
+                description="Second number (should not be an expression, but a single number)"
             )
         ],
         required=["a", "b"]
@@ -68,12 +68,12 @@ tool_power = Tool(
             Property(
                 name="a",
                 type="string",
-                description="Base number"
+                description="Base number (should not be an expression, but a single number)"
             ),
             Property(
                 name="b",
                 type="string",
-                description="Exponent number"
+                description="Exponent number (should not be an expression, but a single number)"
             )
         ],
         required=["a", "b"]
