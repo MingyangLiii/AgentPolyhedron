@@ -18,15 +18,15 @@ if __name__ == "__main__":
     # print(agent.tool_env.get_tools_desc_list())
 
     # print(agent.call("What is the current time in Atlanta?"))
-    print(agent.call('what is the result of 1045.933 / 8344.92?'))
+    # print(agent.call('what is the result of 1045.933 / 8344.92?'))
 
-    # agent.tool_env.register_tool(tool_get_current_time_by_timezone)
+    agent.tool_env.register_tool(tool_get_current_time_by_timezone)
     # agent.tool_env.register_tool(tool_multiply)
     agent.tool_env.register_tool(tool_divide)
     # agent.tool_env.register_tool(tool_power)
 
 
-    # print(agent.call("What is the current time in Atlanta?"))
+    print(agent.call("What is the current time in Atlanta?"))
     print(agent.call('what is the result of 1045.933 / 8344.92?'))
     
 
