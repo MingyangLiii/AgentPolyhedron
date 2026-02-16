@@ -15,6 +15,9 @@ class ReactAgent:
             {"role": "system", "content": "You are a methodical problem solver. Think step-by-step."},
             {"role": "user", "content": f"""## Task: {task}
 
+            ## Available Tools:
+            {self.tool_env.get_tools_desc_list_short()}
+            
             ## Previous steps: {history}
 
             ## Instructions:
@@ -29,19 +32,34 @@ class ReactAgent:
     
     def _get_action_prompt(self, thought: str) -> List[Dict]:
         return [{
-            "role": "system", "content": f"""You are a tool calling agent. You will be given a list of tool name and arguments, and you can call the tool with the arguments if needed.
+            "role": "system", "content": f"""You are a tool calling agent. You will be given a list of tool name and arguments, and you can call the following tool with the arguments if needed.
+            However, your tool calling should not be out of the available tools as described below. 
+            
             ## Tool Description:
             {self.tool_env.get_tools_desc_list()}
 
             ## Requirement:
-            1. If your want to call a tool, take the action 'ToolCall'.
-            2. If the task is solved, take the action 'Finish'.
+            1. If your want to call a tool, call the method 'tools/call'.
+            2. If the task is solved, call the method "finish".
+            3. You should not repetitively call tools. If you have called a tool and get the result, you should think about the result and decide what to do next, instead of calling the same tool again.
 
             ## Output Format:
+            Example 1 (calling tool):
             {{
-                "action": "ToolCall" or "Finish",
-                "content": "If action is 'ToolCall', content should be the json string of the tool calling message. If action is 'Finish', content should be 'Finish'."
+                "method": "tools/call",
+                "params": {{
+                    "name": "get_weather",
+                    "arguments": {{"location": "Beijing"}}
+                }}
             }}
+
+            Example 2 (finishing task):
+            {{
+                "method": "finish",
+                "params": {{
+                    "result": "The task has been completed successfully"
+                }}
+            }} 
             """},
             {"role": "user", "content": f"""## Thought: {thought}"""
         }]
@@ -75,14 +93,13 @@ class ReactAgent:
             
             msg = json.loads(action) # type: ignore
 
-            if "Finish" in msg["action"]: # type: ignore
+            if "finish" in msg["method"]: # type: ignore
                 response_prompt = self._get_response_prompt(task, history)
                 return self.llm.call(response_prompt) # type: ignore
 
-            elif "ToolCall" in msg["action"]: # type: ignore
-                try:
-                    tool_calling_msg = msg["content"] # type: ignore
-                    tool_calling_res = self.tool_env.call(tool_calling_msg) # type: ignore
+            elif "tools/call" in msg["method"]: # type: ignore
+                try: 
+                    tool_calling_res = self.tool_env.call(msg) # type: ignore
 
                     history.append(f"Thought {i+1}: {thought}")
                     history.append(f"Action {i+1}: {action}")

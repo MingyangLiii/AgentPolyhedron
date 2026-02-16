@@ -7,18 +7,17 @@ from utils.tool import Tool
 class ToolEnv:
     def __init__(self):
         self.tools = []
+        self.variables = {}
 
 
     def call(self, message: Union[Dict, str]) -> str:
         """
         Example Message:
         {
-        "method": "tools/call",
-        "params": {
-            "name": "get_weather",
-            "arguments": {
-            "location": "type: string \n description: City name or zip code \n required: True"
-                }
+            "method": "tools/call",
+            "params": {
+                "name": "get_weather",
+                "arguments": {"location": "Beijing"}
             }
         }
         """
@@ -26,8 +25,14 @@ class ToolEnv:
         if isinstance(message, str):
             message = json.loads(message)
 
-        func = self.get_tool_func(message["params"]["name"]) # type: ignore
-        arguments = message["params"]["arguments"] # type: ignore
+        if "params" in message:
+            tool_name = message["params"]["name"] # type: ignore
+            arguments = message["params"]["arguments"] # type: ignore
+        else:
+            tool_name = message["name"] # type: ignore
+            arguments = message["arguments"] # type: ignore
+
+        func = self.get_tool_func(tool_name)
 
         arguments_list = []
         for key, value in arguments.items(): # type: ignore
