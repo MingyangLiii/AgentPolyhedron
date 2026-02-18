@@ -1,6 +1,7 @@
 from typing import Callable, Dict, Union, List
 import json
 from utils.tool import Tool
+from utils.var_env import VarEnv
 
 
 
@@ -10,7 +11,7 @@ class ToolEnv:
         self.variables = {}
 
 
-    def call(self, message: Union[Dict, str]) -> str:
+    def call(self, message: Union[Dict, str], var_env: Union[VarEnv, None]=None) -> str:
         """
         Example Message:
         {
@@ -35,8 +36,16 @@ class ToolEnv:
         func = self.get_tool_func(tool_name)
 
         arguments_list = []
+        
+
         for key, value in arguments.items(): # type: ignore
             arguments_list.append(value)
+        
+        if var_env is not None:
+            for i in range(len(arguments_list)):
+                if var_env.contains_var(arguments_list[i]):
+                    arguments_list[i] = var_env.get_var(arguments_list[i])
+
             
         return func(*arguments_list)
 

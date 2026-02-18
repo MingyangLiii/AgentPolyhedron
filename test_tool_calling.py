@@ -1,6 +1,6 @@
 from agent.tool_calling_agent import ToolCallingAgent
-from utils.tools.time_tool import tool_get_current_time_by_timezone
-from utils.tools.calc_tool import tool_multiply, tool_divide, tool_power
+from utils.tool_collection.time_tool import tool_get_current_time_by_timezone
+from utils.tool_collection.calc_tool import tool_multiply, tool_divide, tool_power
 from utils.tool_env import ToolEnv
 from agent.llm import LLM
 

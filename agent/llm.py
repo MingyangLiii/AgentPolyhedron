@@ -4,19 +4,17 @@ from openai import OpenAI
 from typing import List, Dict
 
 env = load_dotenv()
-# print(os.getenv("DEEPSEEK_API_KEY")) 
-
 
 class LLM:
     def __init__(self):
         self.client = OpenAI(
-            api_key=os.environ.get('DEEPSEEK_API_KEY'),
-            base_url="https://api.deepseek.com"
+            api_key=os.environ.get('API_KEY'),
+            base_url=os.environ.get('BASE_URL')
         )
             
     def call(self, messages: List[Dict]) -> str:
         response = self.client.chat.completions.create(
-            model="deepseek-chat",
+            model=os.environ.get('MODEL'), # type: ignore
             messages=messages, # type: ignore
             stream=False
         ) # type: ignore

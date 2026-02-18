@@ -1,12 +1,14 @@
 from typing import Dict, List
 from agent.llm import LLM
 from utils.tool_env import ToolEnv
+from utils.var_env import VarEnv
 import json
 
-class ReactAgent:
-    def __init__(self, llm: LLM, tool_env: ToolEnv, verbose:bool=True):
+class EnvAgent:
+    def __init__(self, llm: LLM, tool_env: ToolEnv, var_env: VarEnv, verbose:bool=True):
         self.llm = llm
         self.tool_env = tool_env
+        self.var_env = var_env
         self.verbose = verbose
 
     def _get_thought_prompt(self, task: str, history: List[str]) -> List[Dict]:
@@ -14,6 +16,9 @@ class ReactAgent:
         return [
             {"role": "system", "content": "You are a methodical problem solver. Think step-by-step."},
             {"role": "user", "content": f"""## Task: {task}
+             
+            ## Available Variables:
+            {self.var_env.list_vars()}
 
             ## Available Tools:
             {self.tool_env.get_tools_desc_list_short()}
@@ -34,6 +39,9 @@ class ReactAgent:
         return [{
             "role": "system", "content": f"""You are a tool calling agent. You will be given a list of tool name and arguments, and you can call the following tool with the arguments if needed.
             However, your tool calling should not be out of the available tools as described below. 
+
+            ## Available Variables:
+            {self.var_env.list_vars()}
             
             ## Tool Description:
             {self.tool_env.get_tools_desc_list()}
@@ -42,6 +50,7 @@ class ReactAgent:
             1. If your want to call a tool, call the method 'tools/call'.
             2. If the task is solved, call the method "finish".
             3. You should not repetitively call tools. If you have called a tool and get the result, you should think about the result and decide what to do next, instead of calling the same tool again.
+            4. You can use the available variables as arguments when calling tools. The variables are set by the tool calling results in previous steps. You can also use the tool calling results in previous steps as arguments when calling tools.
 
             ## Output Format:
             Example 1 (calling tool):
@@ -99,11 +108,19 @@ class ReactAgent:
 
             elif "tools/call" in msg["method"]: # type: ignore
                 try: 
-                    tool_calling_res = self.tool_env.call(msg) # type: ignore
+                    tool_calling_res = self.tool_env.call(msg, self.var_env) # type: ignore
 
-                    history.append(f"Thought {i+1}: {thought}")
-                    history.append(f"Action {i+1}: {action}")
-                    history.append(f"Tool Result {i+1}: {tool_calling_res}")
+                    if type(tool_calling_res) == str:
+                        history.append(f"Thought {i+1}: {thought}")
+                        history.append(f"Action {i+1}: {action}")
+                        history.append(f"Tool Result {i+1}: {tool_calling_res}")
+                    else:
+                        self.var_env.set_var(f"var_{i+1}", tool_calling_res)
+                        history.append(f"Thought {i+1}: {thought}")
+                        history.append(f"Action {i+1}: {action}")
+                        history.append(f"Tool Result {i+1}: variable 'var_{i+1}' is set.")
+
+
                 except Exception as e:
                     raise ValueError(f"Tool calling failed with error: {e}")
 
@@ -114,5 +131,3 @@ class ReactAgent:
 
         response_prompt = self._get_response_prompt(task, history)
         return self.llm.call(response_prompt) # type: ignore
-
-
